@@ -16,12 +16,15 @@ from data.models import (
     InsiderTradeResponse,
 )
 
+# 全局缓存实例
 # Global cache instance
 _cache = get_cache()
 
 
 def get_prices(ticker: str, start_date: str, end_date: str) -> list[Price]:
     """Fetch price data from cache or API."""
+    """从缓存或API获取价格数据"""
+    # 首先检查缓存
     # Check cache first
     if cached_data := _cache.get_prices(ticker):
         # Filter cached data by date range and convert to Price objects
@@ -29,6 +32,7 @@ def get_prices(ticker: str, start_date: str, end_date: str) -> list[Price]:
         if filtered_data:
             return filtered_data
 
+    # 如果缓存中没有或数据不在范围内，从API获取
     # If not in cache or no data in range, fetch from API
     headers = {}
     if api_key := os.environ.get("FINANCIAL_DATASETS_API_KEY"):
@@ -58,6 +62,7 @@ def get_financial_metrics(
     limit: int = 10,
 ) -> list[FinancialMetrics]:
     """Fetch financial metrics from cache or API."""
+    """从缓存或API获取财务指标数据"""
     # Check cache first
     if cached_data := _cache.get_financial_metrics(ticker):
         # Filter cached data by date and limit
@@ -97,6 +102,7 @@ def search_line_items(
     limit: int = 10,
 ) -> list[LineItem]:
     """Fetch line items from API."""
+    """从API获取财务科目数据"""
     # If not in cache or insufficient data, fetch from API
     headers = {}
     if api_key := os.environ.get("FINANCIAL_DATASETS_API_KEY"):
@@ -131,6 +137,7 @@ def get_insider_trades(
     limit: int = 1000,
 ) -> list[InsiderTrade]:
     """Fetch insider trades from cache or API."""
+    """从缓存或API获取内幕交易数据"""
     # Check cache first
     if cached_data := _cache.get_insider_trades(ticker):
         # Filter cached data by date range
@@ -194,6 +201,7 @@ def get_company_news(
     limit: int = 1000,
 ) -> list[CompanyNews]:
     """Fetch company news from cache or API."""
+    """从缓存或API获取公司新闻数据"""
     # Check cache first
     if cached_data := _cache.get_company_news(ticker):
         # Filter cached data by date range
@@ -256,6 +264,7 @@ def get_market_cap(
     end_date: str,
 ) -> float | None:
     """Fetch market cap from the API."""
+    """从API获取市值数据"""
     financial_metrics = get_financial_metrics(ticker, end_date)
     market_cap = financial_metrics[0].market_cap
     if not market_cap:
@@ -266,6 +275,7 @@ def get_market_cap(
 
 def prices_to_df(prices: list[Price]) -> pd.DataFrame:
     """Convert prices to a DataFrame."""
+    """将价格数据转换为DataFrame"""
     df = pd.DataFrame([p.model_dump() for p in prices])
     df["Date"] = pd.to_datetime(df["time"])
     df.set_index("Date", inplace=True)
@@ -276,6 +286,7 @@ def prices_to_df(prices: list[Price]) -> pd.DataFrame:
     return df
 
 
+# 更新get_price_data函数以使用新函数
 # Update the get_price_data function to use the new functions
 def get_price_data(ticker: str, start_date: str, end_date: str) -> pd.DataFrame:
     prices = get_prices(ticker, start_date, end_date)

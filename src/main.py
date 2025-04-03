@@ -28,14 +28,18 @@ from utils.visualize import save_graph_as_png
 import json
 
 # Load environment variables from .env file
+# 从.env文件加载环境变量
 load_dotenv()
 
+# 初始化colorama颜色设置(自动重置)
 init(autoreset=True)
 
 
 def parse_hedge_fund_response(response):
     """Parses a JSON string and returns a dictionary."""
+    """解析对冲基金响应JSON字符串并返回字典"""
     try:
+        # 尝试解析JSON响应
         return json.loads(response)
     except json.JSONDecodeError as e:
         print(f"JSON decoding error: {e}\nResponse: {repr(response)}")
@@ -60,10 +64,13 @@ def run_hedge_fund(
     model_name: str = "gpt-4o",
     model_provider: str = "OpenAI",
 ):
+    """运行对冲基金交易逻辑"""
     # Start progress tracking
+    # 开始进度跟踪
     progress.start()
 
     try:
+        # 如果指定了分析师，则创建自定义工作流
         # Create a new workflow if analysts are customized
         if selected_analysts:
             workflow = create_workflow(selected_analysts)
@@ -104,17 +111,20 @@ def run_hedge_fund(
 
 def start(state: AgentState):
     """Initialize the workflow with the input message."""
+    """使用输入消息初始化工作流"""
     return state
 
 
 def create_workflow(selected_analysts=None):
     """Create the workflow with selected analysts."""
+    """使用选定的分析师创建工作流"""
     workflow = StateGraph(AgentState)
     workflow.add_node("start_node", start)
 
     # Get analyst nodes from the configuration
     analyst_nodes = get_analyst_nodes()
 
+    # 如果没有选择分析师，则默认使用全部
     # Default to all analysts if none selected
     if selected_analysts is None:
         selected_analysts = list(analyst_nodes.keys())
@@ -124,6 +134,7 @@ def create_workflow(selected_analysts=None):
         workflow.add_node(node_name, node_func)
         workflow.add_edge("start_node", node_name)
 
+    # 总是添加风险管理和投资组合管理节点
     # Always add risk and portfolio management
     workflow.add_node("risk_management_agent", risk_management_agent)
     workflow.add_node("portfolio_management_agent", portfolio_management_agent)
@@ -141,6 +152,7 @@ def create_workflow(selected_analysts=None):
 
 
 if __name__ == "__main__":
+    # 主程序入口
     parser = argparse.ArgumentParser(description="Run the hedge fund trading system")
     parser.add_argument(
         "--initial-cash",
@@ -168,6 +180,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    # 从逗号分隔的字符串解析股票代码
     # Parse tickers from comma-separated string
     tickers = [ticker.strip() for ticker in args.tickers.split(",")]
 
@@ -254,8 +267,17 @@ if __name__ == "__main__":
     else:
         start_date = args.start_date
 
+    # 使用现金金额和股票头寸初始化投资组合
     # Initialize portfolio with cash amount and stock positions
     portfolio = {
+        # 现金金额
+        "cash": args.initial_cash,  # Initial cash amount
+        # 保证金要求
+        "margin_requirement": args.margin_requirement,  # Initial margin requirement
+        # 已用保证金
+        "margin_used": 0.0,  # total margin usage across all short positions
+        # 持仓信息
+        "positions": {
         "cash": args.initial_cash,  # Initial cash amount
         "margin_requirement": args.margin_requirement,  # Initial margin requirement
         "margin_used": 0.0,  # total margin usage across all short positions
