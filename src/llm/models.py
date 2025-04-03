@@ -16,6 +16,7 @@ class ModelProvider(str, Enum):
     GEMINI = "Gemini"
     GROQ = "Groq"
     OPENAI = "OpenAI"
+    OPENROUTER = "OpenRouter"
 
 
 
@@ -104,6 +105,16 @@ AVAILABLE_MODELS = [
         model_name="o3-mini",
         provider=ModelProvider.OPENAI
     ),
+    LLMModel(
+        display_name="[openrouter] gemini-2.5-pro-exp-03-25:free",
+        model_name="google/gemini-2.5-pro-exp-03-25:free",
+        provider=ModelProvider.OPENROUTER
+    ),
+    LLMModel(
+        display_name="[openrouter] deepseek-chat-v3-0324:free",
+        model_name="deepseek/deepseek-chat-v3-0324:free",
+        provider=ModelProvider.OPENROUTER
+    ),
 ]
 
 # Create LLM_ORDER in the format expected by the UI
@@ -147,3 +158,9 @@ def get_model(model_name: str, model_provider: ModelProvider) -> ChatOpenAI | Ch
             print(f"API Key Error: Please make sure GOOGLE_API_KEY is set in your .env file.")
             raise ValueError("Google API key not found.  Please make sure GOOGLE_API_KEY is set in your .env file.")
         return ChatGoogleGenerativeAI(model=model_name, api_key=api_key)
+    elif model_provider == ModelProvider.OPENROUTER:
+        api_key = os.getenv("OPENROUTER_API_KEY")
+        if not api_key:
+            print(f"API Key Error: Please make sure OPENROUTER_API_KEY is set in your .env file.")
+            raise ValueError("OpenRouter API key not found.  Please make sure OPENROUTER_API_KEY is set in your .env file.")
+        return ChatOpenAI(base_url="https://openrouter.ai/api/v1",model=model_name, api_key=api_key)
