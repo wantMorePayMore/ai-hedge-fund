@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  ai-hedge-fund:
+    image: ai-hedge-fund:latest
+    volumes:
+      - .:/app
+    working_dir: /app
+    tty: true
+    stdin_open: true
+    environment:
+      - PYTHONUNBUFFERED=1
